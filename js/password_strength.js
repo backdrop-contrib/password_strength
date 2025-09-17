@@ -3,25 +3,30 @@
   /**
    * Attach handlers to evaluate the strength of any password fields.
    */
-  Drupal.behaviors.PasswordStrengthCheck = {
+  Backdrop.behaviors.PasswordStrengthCheck = {
     attach: function (context, settings) {
       $('input.password-field', context).once('password-strength-check', function () {
 
         var passwordCheck, position,
-            request_data, required_score = queryString['password_score'];
+            request_data;
+        var required_score = Backdrop.settings.passwordStrength.strength_required_score;
 
         // Create password check dom elements and apply them around the password field.
         var $self = $(this),
             $container = $('<div class="password-strength-check"></div>'),
             $strength_bar = $('<div class="password-strength-strength-bar"><div class="bar"><div class="value"></div></div></div>'),
-            $message_strength = $('<div class="password-strength-message-strength clearfix"></div>'),
-            $message_requirements = $('<div class="password-strength-message-requirements"></div>'),
-            $message_flaws = $('<div class="password-strength-message-flaws"></div>');
+            $message_container = $('<div class="password-strength-messages"></div>'),
+            $message_strength = $('<div class="password-strength password-strength-message-strength clearfix"></div>'),
+            $message_requirements = $('<div class="password-strength password-strength-message-requirements"></div>'),
+            $message_crack_time = $('<div class="password-strength password-strength-message-crack-time"></div>'),
+            $message_flaws = $('<div class="password-strength password-strength-message-flaws"></div>');
         $self.wrap($container);
-        $self.after($message_flaws).after($message_requirements).after($message_strength).after($strength_bar);
+        $self.after($message_flaws).after($message_crack_time).after($message_requirements).after($message_strength).after($strength_bar);
+        $("div[class^='password-strength password-strength-message-']").wrapAll($message_container);
 
         // Hide the message elements.
         $message_strength.hide();
+        $message_crack_time.hide();
         $message_flaws.hide();
 
         var passwordCheck = function (e, isCallback) {
@@ -30,15 +35,21 @@
           }
 
           e.stopImmediatePropagation();
+          console.log(required_score);
+          if ($self.hasClass('password-test')) {
+            required_score = $("#edit-default-required-score").val();
+            console.log(required_score);
+          }
 
-          request_data = { password: encodeURIComponent($self.val()), token: Drupal.settings.passwordStrength.token, uid: Drupal.settings.passwordStrength.uid };
+
+          request_data = { password: encodeURIComponent($self.val()), token: Backdrop.settings.passwordStrength.token, uid: Backdrop.settings.passwordStrength.uid };
           if (required_score) {
             request_data['password_score'] = required_score;
           }
 
           // Check password strength.
           $.post(
-            Drupal.settings.passwordStrength.secure_base_url + 'system/password-strength-check',
+            Backdrop.settings.passwordStrength.secure_base_url + '/ajax/people/password-strength/check',
             request_data,
             function(data) {
 
@@ -57,6 +68,7 @@
               // Set message content.
               $message_strength.html(data.message_strength);
               $message_requirements.html(data.message_requirements);
+              $message_crack_time.html(data.message_crack_time);
               $message_flaws.html(data.message_flaws);
 
               // Show the strength message.
@@ -67,6 +79,11 @@
               // Show the requirements message.
               if ($message_requirements.is(':hidden')) {
                 $message_requirements.slideDown();
+              }
+
+              // Show the crack time message.
+              if ($message_crack_time.is(':hidden')) {
+                $message_crack_time.slideDown();
               }
 
               // Hide the flaws if password is strong enough.
@@ -133,11 +150,11 @@
 
           if ($self.val()) {
             if ($self.val() === $('input.password-field').val()) {
-              $message.html(Drupal.t('Passwords match.'));
+              $message.html(Backdrop.t('Passwords match.'));
               $message.slideDown();
             }
             else {
-              $message.html(Drupal.t('Passwords do not match.'));
+              $message.html(Backdrop.t('Passwords do not match.'));
               $message.slideDown();
             }
           }
@@ -202,6 +219,6 @@
       b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
     }
     return b;
-  })(window.location.search.substr(1).split('&'))
+  })(window.location.search.substring(1).split('&'))
 
 })(jQuery);
