@@ -35,12 +35,9 @@
           }
 
           e.stopImmediatePropagation();
-          console.log(required_score);
           if ($self.hasClass('password-test')) {
             required_score = $("#edit-default-required-score").val();
-            console.log(required_score);
           }
-
 
           request_data = { password: encodeURIComponent($self.val()), token: Backdrop.settings.passwordStrength.token, uid: Backdrop.settings.passwordStrength.uid };
           if (required_score) {
