@@ -22,7 +22,7 @@ function password_strength_settings() {
   $form['default_required_score'] = array(
     '#type' => 'select',
     '#title' => t('Minimum required password strength'),
-    '#description' => t('The minimum strength required for user account passwords.'),
+    '#description' => t('The minimum strength <em>required</em> for user account passwords. If set to <em>disabled</em>, feedback will still be provided, but no validation will take place.'),
     '#default_value' => $config->get('default_required_score'),
     '#options' => password_strength_score_list(),
   );
@@ -47,7 +47,7 @@ function password_strength_settings() {
   $form['default_password_length'] = array(
     '#type' => 'number',
     '#title' => t('Minimum password length'),
-    '#description' => t('The minimum password length in number of characters.'),
+    '#description' => t('The minimum password length in number of characters. This will not be enforced if <em>Minimum required password strength</em> is set to <em>disabled</em>,'),
     '#default_value' => $config->get('default_password_length'),
   );
   // We need to remove any password entered for testing so it is not saved in
